@@ -25,7 +25,7 @@ public class Task {
     private String description;
 
     @Column
-    private User assignee; //**
+    private String assigneeUser;
 
     @Column
     private LocalDateTime createdDate;
@@ -38,11 +38,86 @@ public class Task {
     @JsonBackReference(value = "task-column")
     private Col col;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)// (checklist - o lista de pasi pentru rezolvarea task-ului)
     @JsonManagedReference(value = "task-step")
     private List<Step> stepList;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)  //**
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "task-task-history")
     private List<TaskHistory> taskHistoryList;
+
+    Task(){}
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getAssigneeUser() {
+        return assigneeUser;
+    }
+
+    public void setAssigneeUser(String assigneeUser) {
+        this.assigneeUser = assigneeUser;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
+    public Col getCol() {
+        return col;
+    }
+
+    public void setCol(Col col) {
+        this.col = col;
+    }
+
+    public List<Step> getStepList() {
+        return stepList;
+    }
+
+    public void setStepList(List<Step> stepList) {
+        this.stepList = stepList;
+    }
+
+    public List<TaskHistory> getTaskHistoryList() {
+        return taskHistoryList;
+    }
+
+    public void setTaskHistoryList(List<TaskHistory> taskHistoryList) {
+        this.taskHistoryList = taskHistoryList;
+    }
+
 }

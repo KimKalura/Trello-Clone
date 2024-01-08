@@ -12,19 +12,19 @@ public class Role {
 
     @Id
     @GeneratedValue
-    private Long id;
+    private java.lang.Long id;
 
     @Column
     private RoleType roleType;
 
     @ManyToMany(mappedBy = "roleList")
     @JsonIgnoreProperties("roleList")
-    private List<User> userList;
+    private List<Long> userList;
 
     public Role(){}
 
 
-    public Long getId() {
+    public java.lang.Long getId() {
         return id;
     }
 
@@ -36,14 +36,15 @@ public class Role {
         this.roleType = roleType;
     }
 
-    public List<User> getUserList() {
+    public List<Long> getUserList() {
         if (userList == null){
             userList = new ArrayList<>();
         }
         return userList;
     }
 
-    public void setUserList(List<User> userList) {
+    public void setUserList(List<Long> userList) {
         this.userList = userList;
     }
+
 }
