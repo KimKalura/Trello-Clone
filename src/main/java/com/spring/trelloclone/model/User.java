@@ -2,8 +2,9 @@ package com.spring.trelloclone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.*;
+//import org.springframework.data.annotation.Id;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 

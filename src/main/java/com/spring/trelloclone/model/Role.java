@@ -1,9 +1,8 @@
 package com.spring.trelloclone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import jakarta.persistence.Column;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 

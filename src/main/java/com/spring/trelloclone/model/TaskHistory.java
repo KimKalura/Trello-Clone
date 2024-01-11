@@ -1,7 +1,9 @@
 package com.spring.trelloclone.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
+//import org.springframework.data.annotation.Id;
+
+import javax.persistence.*;
 
 @Entity
 public class TaskHistory {
