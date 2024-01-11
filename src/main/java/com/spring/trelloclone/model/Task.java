@@ -34,8 +34,8 @@ public class Task {
     private LocalDateTime deadline;
 
     @ManyToOne
-    @JoinColumn(name = "column_id")
-    @JsonBackReference(value = "task-column")
+    @JoinColumn(name = "col_id")
+    @JsonBackReference(value = "col-task")
     private Col col;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)// (checklist - o lista de pasi pentru rezolvarea task-ului)
@@ -43,10 +43,22 @@ public class Task {
     private List<Step> stepList;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "task-task-history")
+    @JsonManagedReference(value = "task-taskHistory")
     private List<TaskHistory> taskHistoryList;
 
-    Task(){}
+    public Task(){}
+
+    public Task(Long id, String title, String description, String assigneeUser, LocalDateTime createdDate, LocalDateTime deadline, Col col, List<Step> stepList, List<TaskHistory> taskHistoryList) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.assigneeUser = assigneeUser;
+        this.createdDate = createdDate;
+        this.deadline = deadline;
+        this.col = col;
+        this.stepList = stepList;
+        this.taskHistoryList = taskHistoryList;
+    }
 
     public Long getId() {
         return id;

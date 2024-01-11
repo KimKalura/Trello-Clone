@@ -1,5 +1,6 @@
 package com.spring.trelloclone.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.persistence.Column;
@@ -15,7 +16,7 @@ public class Team {
             sequenceName = "category_seq",
             initialValue = 1,
             allocationSize = 1)
-    private java.lang.Long id;
+    private Long id;
 
     @Column
     private String title;
@@ -23,9 +24,10 @@ public class Team {
     @Column
     private String description;
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "team-user")
-    private List<Long> userList;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    @JsonBackReference(value = "user-team")
+    private User user;
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "team-board")
@@ -33,19 +35,19 @@ public class Team {
 
     public Team(){}
 
-    public Team(java.lang.Long id, String title, String description, List<Long> userList, List<Board> boardList) {
+    public Team(Long id, String title, String description, User user, List<Board> boardList) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.userList = userList;
+        this.user = user;
         this.boardList = boardList;
     }
 
-    public java.lang.Long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(java.lang.Long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -65,12 +67,12 @@ public class Team {
         this.description = description;
     }
 
-    public List<Long> getUserList() {
-        return userList;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserList(List<Long> userList) {
-        this.userList = userList;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public List<Board> getBoardList() {

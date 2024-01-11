@@ -26,11 +26,11 @@ public class Col {
 
     @ManyToOne
     @JoinColumn(name = "board_id")
-    @JsonBackReference(value = "column-board")
+    @JsonBackReference(value = "board-col")
     private  Board board;
 
-    @OneToMany(mappedBy = "column", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "column-task")
+    @OneToMany(mappedBy = "col", cascade = CascadeType.ALL)
+    @JsonManagedReference(value = "col-task")
     private List<Task> taskList;
 
     public Col(){}

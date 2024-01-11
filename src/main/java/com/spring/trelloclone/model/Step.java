@@ -1,5 +1,6 @@
 package com.spring.trelloclone.model;
 
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
@@ -16,7 +17,7 @@ public class Step {
 
     @ManyToOne
     @JoinColumn(name = "task_id")
-    @JsonBackReference(value = "step-task")
+    @JsonBackReference(value = "task-step")
     private Task task;
 
     public Step(){}

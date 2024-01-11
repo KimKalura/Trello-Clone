@@ -34,7 +34,7 @@ public class Board {
     private Team team;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "board-column")
+    @JsonManagedReference(value = "board-col")
     private List<Col> columnList;
 
     public Board(){}
