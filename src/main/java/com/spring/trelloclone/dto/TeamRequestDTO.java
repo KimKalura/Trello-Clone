@@ -1,7 +1,5 @@
 package com.spring.trelloclone.dto;
 
-import com.spring.trelloclone.model.Long;
-
 import java.util.List;
 
 public class TeamRequestDTO {

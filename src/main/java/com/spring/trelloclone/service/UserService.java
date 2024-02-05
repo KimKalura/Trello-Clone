@@ -48,10 +48,10 @@ public class UserService {
             } else {
                 userRole = roleOptional.get();
             }
-        } else if ("LEADER".equals(roleString)) {
-            Optional<Role> roleOptional = roleRepository.findByRoleType(RoleType.TEAM_LEADER); //.client
+        } else if ("MEMBER".equals(roleString)) {
+            Optional<Role> roleOptional = roleRepository.findByRoleType(RoleType.TEAM_MEMBER); //.client
             if (roleOptional.isEmpty()) {
-                userRole.setRoleType(RoleType.TEAM_LEADER);
+                userRole.setRoleType(RoleType.TEAM_MEMBER);
                 userRole = roleRepository.save(userRole);
             } else {
                 userRole = roleOptional.get();
