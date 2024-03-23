@@ -1,12 +1,13 @@
 package com.spring.trelloclone.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 @Entity
 public class Team {
@@ -25,10 +26,15 @@ public class Team {
     @Column
     private String description;
 
-    @ManyToOne
+   /* @OneToMany //(mappedBy = "team")
     @JoinColumn(name = "user_id")
     @JsonBackReference(value = "user-team")
-    private User user;
+    private Set<User> userSet;*/
+
+    @ManyToMany(mappedBy = "team")
+    @JsonIgnoreProperties("team")
+    private Set<User> users;
+
 
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "team-board")
@@ -36,11 +42,11 @@ public class Team {
 
     public Team(){}
 
-    public Team(Long id, String title, String description, User user, List<Board> boardList) {
+    public Team(Long id, String title, String description, Set<User> users, List<Board> boardList) {
         this.id = id;
         this.title = title;
         this.description = description;
-        this.user = user;
+        this.users = users;
         this.boardList = boardList;
     }
 
@@ -68,12 +74,15 @@ public class Team {
         this.description = description;
     }
 
-    public User getUser() {
-        return user;
+    public Set<User> getUsers() {
+        if (this.users == null) {
+            this.users = new HashSet<>();
+        }
+        return users;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsers(Set<User> users) {
+        this.users = users;
     }
 
     public List<Board> getBoardList() {

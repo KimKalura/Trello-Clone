@@ -5,6 +5,7 @@ import com.spring.trelloclone.model.Team;
 import com.spring.trelloclone.model.User;
 import com.spring.trelloclone.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,13 +22,13 @@ public class TeamController {
     }
 
     @PostMapping("/create")
-    public Team addTeam(@RequestBody TeamRequestDTO teamRequestDTO) {
+    public Team addTeam(@RequestBody TeamRequestDTO teamRequestDTO) throws ChangeSetPersister.NotFoundException {
         return teamService.addTeam(teamRequestDTO);
     }
 
-    @PostMapping("/addMember/{userId}")
-    public Team inviteMemberInATeam(@PathVariable Long userId) {
-        return teamService.inviteMemberInATeam(userId);
+    @PostMapping("/addMember/{userId}/{teamId}")
+    public Team inviteMemberInATeam(@PathVariable Long userId, @PathVariable Long teamId) {
+        return teamService.inviteMemberInATeam(userId, teamId);
     }
 
     @GetMapping("/findAllMembers")

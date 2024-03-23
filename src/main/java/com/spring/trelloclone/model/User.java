@@ -2,11 +2,11 @@ package com.spring.trelloclone.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-//import org.springframework.data.annotation.Id;
-
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class User {
@@ -28,10 +28,20 @@ public class User {
     private String password;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+   /* @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference(value = "user-team")
-    //@JoinColumn(name = "team_Id")
-    private List<Team> teamList;
+    @JoinColumn(name = "team_Id")
+    private Set<Team> teamSet;*/
+
+    @ManyToMany
+    @JsonIgnoreProperties("user")
+    @JoinTable(
+            name = "user_team",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name ="team_id")
+    )
+    private Set<Team> team;
+
 
     @ManyToMany
     @JsonIgnoreProperties("userList")
@@ -46,12 +56,12 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String username, String email, String password, List<Team> teamList, List<Role> roleList) {
+    public User(Long id, String username, String email, String password, Set<Team> team, List<Role> roleList) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.teamList = teamList;
+        this.team = team;
         this.roleList = roleList;
     }
 
@@ -98,12 +108,15 @@ public class User {
         this.password = password;
     }
 
-    public List<Team> getTeamList() {
-        return teamList;
+    public Set<Team> getTeam() {
+        if(this.team == null) {
+            this.team = new HashSet<>();
+        }
+        return team;
     }
 
-    public void setTeamList(List<Team> teamList) {
-        this.teamList = teamList;
+    public void setTeam(Set<Team> team) {
+        this.team = team;
     }
 }
 
