@@ -1,6 +1,7 @@
 package com.spring.trelloclone.service;
 
 import com.spring.trelloclone.dto.TeamRequestDTO;
+import com.spring.trelloclone.model.Role;
 import com.spring.trelloclone.model.RoleType;
 import com.spring.trelloclone.model.Team;
 import com.spring.trelloclone.model.User;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,14 +62,11 @@ public class TeamService {
         return teamRepository.save(team);
     }
 
-
     // >>Invit un utilizator in echipa mea (admin, team-leader)
     // >> Pentru inceput, pur si simplu se va adauga un nou utilizator existent (dar care sa aiba rolul de team_member) in echipa, fara a mai fi invitat inainte
     //Cautam utilizatorul in DB dupa ID (daca nu exista, aruncam exceptie)
     //Fac legatura intre utilizator si echipa - ??? fac un nou member user + team ???
     //Salvam echipa in db (updatez echipa)
-    //TODO: nu trebuie dat ca parametru si teamId pt a stii exact in care echipa TEAM_MEMBER sa fie adaugat ??!?
-
     public Team inviteMemberInATeam(Long userId, Long teamId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         Team team = teamRepository.findById(teamId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
@@ -75,10 +74,37 @@ public class TeamService {
         return teamRepository.save(team);
     }
 
+    //nu se vad userii in team
     public List<User> getAllMembers() { //*
+        //Optional<Role> roleOptional = roleRepository.findByRoleType(RoleType.TEAM_MEMBER);
+
+        //List<Team> users = teamRepository.findAll();
         return teamRepository.findAll().stream()
                 .flatMap(team -> team.getUsers().stream())
                 .filter(user -> user.getRoleList().contains(RoleType.TEAM_MEMBER))
                 .collect(Collectors.toList());
     }
+
+
+    //Sterg un utilizator din echipa mea (admin, team-leader):
+    //Cautam utilizatorul in DB dupa ID (daca nu exista, aruncam exceptie)
+    //Stergem utilizatorul gasit din echipa
+    //Ce iese din Java?
+    //Team (team-ul updatat)
+    public void deleteUserFromTeam(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        Set<Team> teams = user.getTeam();
+        for (Team team : teams) {
+            team.getUsers().remove(user);
+            teamRepository.save(team);
+        }
+    }
+
+    //Vad toate echipele (admin, team_leader, team_member):
+    //id, title, description, lista membrii
+    //Luam toate echipe din DB
+    public List<Team> getAllTeams(){
+        return teamRepository.findAll();
+    }
+
 }

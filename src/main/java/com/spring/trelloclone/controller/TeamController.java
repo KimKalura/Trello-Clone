@@ -9,6 +9,7 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/team")
@@ -35,4 +36,16 @@ public class TeamController {
     public List<User> getAllMembers() {
         return teamService.getAllMembers();
     }
+
+    @DeleteMapping("/{userId}")
+    public void deleteUserFromTeam(@PathVariable Long userId){
+        teamService.deleteUserFromTeam(userId);
+    }
+
+    @GetMapping("/allTeams")
+    public List<Team> getAllTeams() {
+        return teamService.getAllTeams();
+    }
+
+
 }

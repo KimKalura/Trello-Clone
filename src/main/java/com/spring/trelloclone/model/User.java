@@ -34,7 +34,7 @@ public class User {
     private Set<Team> teamSet;*/
 
     @ManyToMany
-    @JsonIgnoreProperties("user")
+    @JsonIgnoreProperties("users")
     @JoinTable(
             name = "user_team",
             joinColumns = @JoinColumn(name = "user_id"),
