@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -43,15 +44,13 @@ public class TeamService {
     //Ii setez descrierea la cea din DTO
     //Adaugam userii gasiti in DB in lista de useri + utilizatorul logat in lista de useri
     //Salvam echipa in db
-    public Team addTeam(TeamRequestDTO teamRequestDTO) throws ChangeSetPersister.NotFoundException {
+    public Team addTeam(TeamRequestDTO teamRequestDTO){
         List<User> users = userRepository.findAllById(teamRequestDTO.getUserIds());
         if (users.size() != teamRequestDTO.getUserIds().size()) {
-            throw new ChangeSetPersister.NotFoundException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");//throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found")
         }
-
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
-
         Team team = new Team();
         team.setTitle(teamRequestDTO.getTitle());
         team.setDescription(teamRequestDTO.getDescription());
@@ -59,13 +58,15 @@ public class TeamService {
         team.getUsers().addAll(users);
         team.getUsers().add(foundUser);
 
+        foundUser.getTeam().add(team); //face legatura cu tabela user_team
+
         return teamRepository.save(team);
     }
 
     // >>Invit un utilizator in echipa mea (admin, team-leader)
     // >> Pentru inceput, pur si simplu se va adauga un nou utilizator existent (dar care sa aiba rolul de team_member) in echipa, fara a mai fi invitat inainte
     //Cautam utilizatorul in DB dupa ID (daca nu exista, aruncam exceptie)
-    //Fac legatura intre utilizator si echipa - ??? fac un nou member user + team ???
+    //Fac legatura intre utilizator si echipa
     //Salvam echipa in db (updatez echipa)
     public Team inviteMemberInATeam(Long userId, Long teamId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -76,9 +77,6 @@ public class TeamService {
 
     //nu se vad userii in team
     public List<User> getAllMembers() { //*
-        //Optional<Role> roleOptional = roleRepository.findByRoleType(RoleType.TEAM_MEMBER);
-
-        //List<Team> users = teamRepository.findAll();
         return teamRepository.findAll().stream()
                 .flatMap(team -> team.getUsers().stream())
                 .filter(user -> user.getRoleList().contains(RoleType.TEAM_MEMBER))
@@ -86,7 +84,8 @@ public class TeamService {
     }
 
 
-    //Sterg un utilizator din echipa mea (admin, team-leader):
+    //Sterg un utilizator din echipa mea (admin, team-leader)
+    //Ce pasi facem in service?
     //Cautam utilizatorul in DB dupa ID (daca nu exista, aruncam exceptie)
     //Stergem utilizatorul gasit din echipa
     //Ce iese din Java?
@@ -101,10 +100,21 @@ public class TeamService {
     }
 
     //Vad toate echipele (admin, team_leader, team_member):
-    //id, title, description, lista membrii
+    //id, title, description, lista membrii, +boardlist?
     //Luam toate echipe din DB
-    public List<Team> getAllTeams(){
+    public List<Team> getAllTeams() {
         return teamRepository.findAll();
+      /*List<Team> foundTeam = teamRepository.findAll();
+        return foundTeam.stream()
+                .filter(team -> team.getUsers().equals(RoleType.ROLE_ADMIN) || team.getUsers().equals(RoleType.TEAM_LEADER) || team.getUsers().equals(RoleType.TEAM_MEMBER))
+                .collect(Collectors.toList());*/
+    }
+
+    public List<Team> getTeamsOfLoggedInUser() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
+        Set<Team> foundTeam =  foundUser.getTeam();
+        return new ArrayList<>(foundTeam);
     }
 
 }

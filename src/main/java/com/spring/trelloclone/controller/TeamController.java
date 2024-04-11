@@ -47,5 +47,9 @@ public class TeamController {
         return teamService.getAllTeams();
     }
 
+    @GetMapping("/allTeamsByUser")
+    public List<Team> getTeamsOfLoggedInUser(){
+        return teamService.getTeamsOfLoggedInUser();
+    }
 
 }
