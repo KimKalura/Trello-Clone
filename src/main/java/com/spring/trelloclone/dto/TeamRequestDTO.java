@@ -1,14 +1,15 @@
 package com.spring.trelloclone.dto;
 
 import java.util.List;
+import java.util.Set;
 
 public class TeamRequestDTO {
 
     private String title;
     private String description;
-    private List<Long> userIds;
+    private Set<Long> userIds;
 
-    public TeamRequestDTO(String title, String description, List<Long> longIds) {
+    public TeamRequestDTO(String title, String description, Set<Long> longIds) {
         this.title = title;
         this.description = description;
         this.userIds = longIds;
@@ -30,11 +31,11 @@ public class TeamRequestDTO {
         this.description = description;
     }
 
-    public List<Long> getUserIds() {
+    public Set<Long> getUserIds() {
         return userIds;
     }
 
-    public void setUserIds(List<Long> longIds) {
+    public void setUserIds(Set<Long> longIds) {
         this.userIds = longIds;
     }
 }
