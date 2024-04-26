@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,7 +32,7 @@ public class TaskService {
     }
 
     //Creez un nou task intr-o anumita coloana (admin, team_leader, team_member)
-    public Task createTask(TaskRequestDTO taskRequestDTO, Long assigneeId) {
+    public Task createTask(TaskRequestDTO taskRequestDTO) {//
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
@@ -41,10 +42,11 @@ public class TaskService {
         } else if (foundUser.getRoleList().contains(RoleType.TEAM_MEMBER)) {
             assignee = foundUser;
         } else {
-            throw new ResponseStatusException(HttpStatus.CREATED, "User not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
 
         Col foundColumn = colRepository.findById(taskRequestDTO.getColumnId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Column was not found"));
+
         Task newTask = new Task();
         newTask.setTitle(taskRequestDTO.getTitle());
         newTask.setDescription(taskRequestDTO.getDescription());
@@ -53,14 +55,16 @@ public class TaskService {
         newTask.setAssigneeUser(String.valueOf(assignee));//userul logat sau cel din db
         newTask.setCol(foundColumn);
 
-        List<Step> steps = taskRequestDTO.getSteps();
-        for (Step stepText : steps) {
+        List<Step> steps = new ArrayList<>(); //taskRequestDTO.getSteps();
+        for (Step stepText : taskRequestDTO.getSteps()) {
             Step step = new Step();
             step.setText(stepText.getText()); //*stepText
             step.setChecked(false);
             step.setTask(newTask);
-            newTask.getStepList().add(step);
+            //newTask.getStepList().add(step);
+            steps.add(step);
         }
+        newTask.setStepList(steps);
 
         //todo: mail
 
@@ -71,5 +75,8 @@ public class TaskService {
 
         return taskRepository.save(newTask);
     }
+
+
+
 
 }
