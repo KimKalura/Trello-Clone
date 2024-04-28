@@ -1,0 +1,35 @@
+package com.spring.trelloclone.service;
+
+import com.itextpdf.text.DocumentException;
+import com.spring.trelloclone.model.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+public class MailService {
+
+    private JavaMailSender emailSender;
+
+
+    @Autowired
+    public MailService(JavaMailSender emailSender) {
+        this.emailSender = emailSender;
+    }
+
+    public void sendNotificationToAssignee(String recepientMail, Task task) throws MessagingException, DocumentException {
+        MimeMessage message = emailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom("florianaralucadeftu@gmail.com");
+        helper.setTo(recepientMail);
+
+        helper.setSubject("Task assigned");
+        helper.setText("You have been assigned a new task:  " + task.getTitle());
+        emailSender.send(message);
+    }
+
+}

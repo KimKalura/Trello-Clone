@@ -1,5 +1,6 @@
 package com.spring.trelloclone.service;
 
+import com.itextpdf.text.DocumentException;
 import com.spring.trelloclone.dto.TaskRequestDTO;
 import com.spring.trelloclone.model.*;
 import com.spring.trelloclone.repository.ColRepository;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,22 +24,25 @@ public class TaskService {
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private ColRepository colRepository;
+    private MailService mailService;
 
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ColRepository colRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ColRepository colRepository, MailService mailService) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.colRepository = colRepository;
+        this.mailService = mailService;
     }
 
     //Creez un nou task intr-o anumita coloana (admin, team_leader, team_member)
-    public Task createTask(TaskRequestDTO taskRequestDTO) {//
+    public Task createTask(TaskRequestDTO taskRequestDTO) throws MessagingException, DocumentException {//
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         User assignee;
         if (foundUser.getRoleList().contains(RoleType.TEAM_LEADER)|| foundUser.getRoleList().contains(RoleType.ROLE_ADMIN)) {
+
             assignee = userRepository.findById(taskRequestDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "The responsible user was not found."));
         } else if (foundUser.getRoleList().contains(RoleType.TEAM_MEMBER)) {
             assignee = foundUser;
@@ -66,7 +71,9 @@ public class TaskService {
         }
         newTask.setStepList(steps);
 
-        //todo: mail
+        //Trimit notificare prin mail catre user-ul asignat
+        mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
+
 
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setMovementDate(newTask.getCreatedDate());
@@ -75,8 +82,4 @@ public class TaskService {
 
         return taskRepository.save(newTask);
     }
-
-
-
-
 }
