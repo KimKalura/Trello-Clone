@@ -2,6 +2,7 @@ package com.spring.trelloclone.service;
 
 import com.itextpdf.text.DocumentException;
 import com.spring.trelloclone.dto.TaskRequestDTO;
+import com.spring.trelloclone.dto.TaskResponseDTO;
 import com.spring.trelloclone.model.*;
 import com.spring.trelloclone.repository.ColRepository;
 import com.spring.trelloclone.repository.TaskRepository;
@@ -17,6 +18,7 @@ import javax.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -82,4 +84,25 @@ public class TaskService {
 
         return taskRepository.save(newTask);
     }
+
+    public TaskResponseDTO getAllTaskDetails (Long taskId){ //*
+        Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
+
+        User assignee = userRepository.findById(foundTask.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        TaskResponseDTO taskResponseDTO = new TaskResponseDTO();
+        taskResponseDTO.setId(taskResponseDTO.getId());
+        taskResponseDTO.setTitle(taskResponseDTO.getTitle());
+        taskResponseDTO.setDescription(taskResponseDTO.getDescription());
+        taskResponseDTO.setAssigneeUser(assignee);
+        taskResponseDTO.setCreatedDate(taskResponseDTO.getCreatedDate());
+        taskResponseDTO.setDeadline(taskResponseDTO.getDeadline());
+
+        taskResponseDTO.setChecklist(taskResponseDTO.getChecklist().stream().map(Step::getText).collect(Collectors.toList());
+        taskResponseDTO.setTaskColumn(taskResponseDTO.getTaskColumn().getTitle());//getColumn
+        taskResponseDTO.setTaskBoard(taskResponseDTO.getTaskColumn().getBoard().getTitle());//getColumn
+        return  taskResponseDTO;
+    }
+
+
 }
