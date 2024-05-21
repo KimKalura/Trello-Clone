@@ -43,7 +43,7 @@ public class TaskService {
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         User assignee;
-        if (foundUser.getRoleList().contains(RoleType.TEAM_LEADER)|| foundUser.getRoleList().contains(RoleType.ROLE_ADMIN)) {
+        if (foundUser.getRoleList().contains(RoleType.TEAM_LEADER) || foundUser.getRoleList().contains(RoleType.ROLE_ADMIN)) {
 
             assignee = userRepository.findById(taskRequestDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "The responsible user was not found."));
         } else if (foundUser.getRoleList().contains(RoleType.TEAM_MEMBER)) {
@@ -74,7 +74,7 @@ public class TaskService {
         newTask.setStepList(steps);
 
         //Trimit notificare prin mail catre user-ul asignat
-        mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
+        //mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
 
 
         TaskHistory taskHistory = new TaskHistory();
@@ -85,24 +85,36 @@ public class TaskService {
         return taskRepository.save(newTask);
     }
 
-    public TaskResponseDTO getAllTaskDetails (Long taskId){ //*
+    public TaskResponseDTO  assignUserToTask(Long userId, Long taskId) { ////////*
+    //Cautam task-ul dupa id, daca nu il gasim aruncam exceptie
+    //Cautam user-ul dupa id, daca nu il gasim aruncam exceptie
+    //Ii setam task-ului user-ul gasit in db
+    //Trimit notificare prin mail catre user-ul asignat
+    //Salvam task-ul
+
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
-
-        User assignee = userRepository.findById(foundTask.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        TaskResponseDTO taskResponseDTO = new TaskResponseDTO();
-        taskResponseDTO.setId(taskResponseDTO.getId());
-        taskResponseDTO.setTitle(taskResponseDTO.getTitle());
-        taskResponseDTO.setDescription(taskResponseDTO.getDescription());
-        taskResponseDTO.setAssigneeUser(assignee);
-        taskResponseDTO.setCreatedDate(taskResponseDTO.getCreatedDate());
-        taskResponseDTO.setDeadline(taskResponseDTO.getDeadline());
-
-        taskResponseDTO.setChecklist(taskResponseDTO.getChecklist().stream().map(Step::getText).collect(Collectors.toList());
-        taskResponseDTO.setTaskColumn(taskResponseDTO.getTaskColumn().getTitle());//getColumn
-        taskResponseDTO.setTaskBoard(taskResponseDTO.getTaskColumn().getBoard().getTitle());//getColumn
-        return  taskResponseDTO;
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        foundTask.setAssigneeUser(user.getUsername());
+        Task updatedTask = taskRepository.save(foundTask);
+        mailService.sendAssignmentNotification(user.getEmail(), foundTask);
+        return convertToDTO(updatedTask);
     }
 
+    private TaskResponseDTO convertToDTO(Task task) {
+        User assignee = new User();
+        assignee.setUsername(task.getAssigneeUser());
+
+        TaskResponseDTO taskResponseDTO = new TaskResponseDTO();
+        taskResponseDTO.setId(task.getId());
+        taskResponseDTO.setTitle(task.getTitle());
+        taskResponseDTO.setDescription(task.getDescription());
+        taskResponseDTO.setAssigneeUser(assignee);
+        taskResponseDTO.setCreatedDate(task.getCreatedDate());
+        taskResponseDTO.setDeadline(task.getDeadline());
+        taskResponseDTO.setChecklist(task.getStepList());
+        taskResponseDTO.setTaskColumn(task.getCol());
+        taskResponseDTO.setTaskBoard(task.getCol().getBoard());
+        return taskResponseDTO;
+    }
 
 }

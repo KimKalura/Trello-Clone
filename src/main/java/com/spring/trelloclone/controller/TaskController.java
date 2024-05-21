@@ -2,6 +2,7 @@ package com.spring.trelloclone.controller;
 
 import com.itextpdf.text.DocumentException;
 import com.spring.trelloclone.dto.TaskRequestDTO;
+import com.spring.trelloclone.dto.TaskResponseDTO;
 import com.spring.trelloclone.model.Task;
 import com.spring.trelloclone.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,4 +28,10 @@ public class TaskController {
         }
         return taskService.createTask(taskRequestDTO);
     }
+
+    @PostMapping("/assign?/{userId}/{taskId}")
+    public TaskResponseDTO assignUserToTask(@RequestParam Long userId, @RequestParam Long taskId){
+        return taskService.assignUserToTask(userId, taskId);
+    }
+
 }

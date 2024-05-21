@@ -3,6 +3,7 @@ package com.spring.trelloclone.service;
 import com.itextpdf.text.DocumentException;
 import com.spring.trelloclone.model.Task;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
@@ -31,5 +32,14 @@ public class MailService {
         helper.setText("You have been assigned a new task:  " + task.getTitle());
         emailSender.send(message);
     }
+
+    public void sendAssignmentNotification(String email, Task task) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("New Task Assignment");
+        message.setText("You have been assigned to the task: " + task.getTitle());
+        emailSender.send(message);
+    }
+
 
 }
