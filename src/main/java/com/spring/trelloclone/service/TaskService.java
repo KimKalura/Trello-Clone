@@ -117,4 +117,9 @@ public class TaskService {
         return taskResponseDTO;
     }
 
+    public TaskResponseDTO getTaskDetails(Long taskId) {///*
+        Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
+        return convertToDTO(foundTask);
+    }
+
 }

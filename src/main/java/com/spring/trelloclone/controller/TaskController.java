@@ -34,4 +34,10 @@ public class TaskController {
         return taskService.assignUserToTask(userId, taskId);
     }
 
+
+    @GetMapping("/{taskId}")
+    public TaskResponseDTO getTaskDetails (@PathVariable Long taskId){
+        return taskService.getTaskDetails(taskId);
+    }
+
 }
