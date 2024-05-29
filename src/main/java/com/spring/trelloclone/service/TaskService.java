@@ -117,6 +117,16 @@ public class TaskService {
         return taskResponseDTO;
     }
 
+    //Vad toate task-urile la care un user asignat (admin, team_leader, team_member)
+    public List<TaskResponseDTO> getTasksByUserId(Long userId) {///*
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        List<Task> tasks = taskRepository.findByAssigneeUser(user.getUsername());
+        return tasks.stream()
+                .map(task -> convertToDTO(task)) //this::convertToDTO
+                .collect(Collectors.toList());
+    }
+
+    //Vad detaliile unui anumit task (admin, team_leader, team_member)
     public TaskResponseDTO getTaskDetails(Long taskId) {///*
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
         return convertToDTO(foundTask);

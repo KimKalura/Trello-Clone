@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/task")
@@ -34,6 +35,10 @@ public class TaskController {
         return taskService.assignUserToTask(userId, taskId);
     }
 
+    @GetMapping("/mytasks/{userId}")
+    public List<TaskResponseDTO> getTasksByUserId(@PathVariable Long userId) {
+        return taskService.getTasksByUserId(userId);
+    }
 
     @GetMapping("/{taskId}")
     public TaskResponseDTO getTaskDetails (@PathVariable Long taskId){
