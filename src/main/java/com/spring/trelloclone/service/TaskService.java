@@ -5,6 +5,7 @@ import com.spring.trelloclone.dto.TaskRequestDTO;
 import com.spring.trelloclone.dto.TaskResponseDTO;
 import com.spring.trelloclone.model.*;
 import com.spring.trelloclone.repository.ColRepository;
+import com.spring.trelloclone.repository.TaskHistoryRepository;
 import com.spring.trelloclone.repository.TaskRepository;
 import com.spring.trelloclone.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +28,16 @@ public class TaskService {
     private UserRepository userRepository;
     private ColRepository colRepository;
     private MailService mailService;
+    private TaskHistoryRepository taskHistoryRepository;
 
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ColRepository colRepository, MailService mailService) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ColRepository colRepository, MailService mailService, TaskHistoryRepository taskHistoryRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.colRepository = colRepository;
         this.mailService = mailService;
+        this.taskHistoryRepository = taskHistoryRepository;
     }
 
     //Creez un nou task intr-o anumita coloana (admin, team_leader, team_member)
@@ -85,7 +88,7 @@ public class TaskService {
         return taskRepository.save(newTask);
     }
 
-    public TaskResponseDTO  assignUserToTask(Long userId, Long taskId) { ////////*
+    public TaskResponseDTO assignUserToTask(Long userId, Long taskId) { ////////*
     //Cautam task-ul dupa id, daca nu il gasim aruncam exceptie
     //Cautam user-ul dupa id, daca nu il gasim aruncam exceptie
     //Ii setam task-ului user-ul gasit in db
@@ -131,5 +134,52 @@ public class TaskService {
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
         return convertToDTO(foundTask);
     }
+
+    //Mut task-ul din coloana curenta in alta coloana (admin, team_leader, team_member)
+        //Team leader-ul va putea muta orice task
+        //Team member-ul va putea muta doar task-urile la care e asignat
+    //pasi:
+    //Cautam task-ul dupa id in db, daca nu exista, aruncam exceptie
+    //Cautam coloana dupa id in db, daca nu exista, aruncam exceptie
+    //Adaug task-ul gasit in lista de task-uri a coloanei gasite (cea in care vrem sa mutam)
+    //Stergem task-ul din lista de task-uri a coloanei curente in care se afla
+    //Salvez in DB coloana curenta
+    //Salvez in DB coloana in care mut
+
+    //ALTERNATIVA:
+    //Ii setez task-ului noua coloana
+    //Creez un TaskHistory
+        //Ii setez movementDate la data actuala (now)
+        //Ii setez numele coloanei la numele coloanei gasite din DB
+    //Salvez task-ul (de vazut daca trebuie cascade pe task, spre coloana)
+    public List<TaskResponseDTO> moveTask(Long taskId, Long columnId){
+        Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
+        Col newColumn  = colRepository.findById(columnId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Column not found"));
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!foundUser.getRoleList().contains(RoleType.ROLE_ADMIN) && !foundUser.getRoleList().contains(RoleType.TEAM_LEADER) && !foundTask.getAssigneeUser().equals(foundUser.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You do not have permission to move this task");
+        }
+
+        foundTask.setCol(newColumn);
+
+        TaskHistory taskHistory = new TaskHistory();
+        taskHistory.setTask(foundTask);
+        taskHistory.setMovementDate(LocalDateTime.now());
+        taskHistory.setColumnName(newColumn.getTitle());
+
+        foundTask.getTaskHistoryList().add(taskHistory);
+
+        taskRepository.save(foundTask);
+        taskHistoryRepository.save(taskHistory);
+
+        List<Task> userTasks = taskRepository.findByAssigneeUser(foundUser.getUsername());
+
+        return userTasks.stream()
+                .map(taskItem -> convertToDTO(taskItem))
+                .collect(Collectors.toList());
+    }
+
 
 }

@@ -31,7 +31,7 @@ public class TaskController {
     }
 
     @PostMapping("/assign?/{userId}/{taskId}")
-    public TaskResponseDTO assignUserToTask(@RequestParam Long userId, @RequestParam Long taskId){
+    public TaskResponseDTO assignUserToTask(@RequestParam Long userId, @RequestParam Long taskId) {
         return taskService.assignUserToTask(userId, taskId);
     }
 
@@ -41,8 +41,13 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public TaskResponseDTO getTaskDetails (@PathVariable Long taskId){
+    public TaskResponseDTO getTaskDetails(@PathVariable Long taskId) {
         return taskService.getTaskDetails(taskId);
+    }
+
+    @PutMapping("/move/{taskId}/{columnId}")
+    public List<TaskResponseDTO> moveTask(Long taskId, Long columnId) {
+        return taskService.moveTask(taskId, columnId);
     }
 
 }
