@@ -16,6 +16,12 @@ public class Step {
             allocationSize = 1)
     private Long id;
 
+    @Column
+    private String text;
+
+    @Column
+    private boolean checked;
+
     @ManyToOne
     @JoinColumn(name = "task_id")
     @JsonBackReference(value = "task-step")
@@ -23,8 +29,10 @@ public class Step {
 
     public Step(){}
 
-    public Step(Long id, Task task) {
+    public Step(Long id, String text, boolean checked, Task task) {
         this.id = id;
+        this.text = text;
+        this.checked = checked;
         this.task = task;
     }
 
@@ -42,5 +50,21 @@ public class Step {
 
     public void setTask(Task task) {
         this.task = task;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
     }
 }
