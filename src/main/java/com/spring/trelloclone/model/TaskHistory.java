@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 //import org.springframework.data.annotation.Id;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class TaskHistory {
@@ -16,15 +17,23 @@ public class TaskHistory {
             allocationSize = 1)
     private Long id;
 
+    @Column
+    private LocalDateTime movementDate;
+
+    @Column
+    private String columnName;
+
     @ManyToOne
     @JoinColumn(name = "task_id")
     @JsonBackReference(value = "task-taskHistory")
-    private Task task; //*ns
+    private Task task;
 
     public TaskHistory(){}
 
-    public TaskHistory(Long id, Task task) {
+    public TaskHistory(Long id, LocalDateTime movementDate, String columnName, Task task) {
         this.id = id;
+        this.movementDate = movementDate;
+        this.columnName = columnName;
         this.task = task;
     }
 
@@ -42,5 +51,21 @@ public class TaskHistory {
 
     public void setTask(Task task) {
         this.task = task;
+    }
+
+    public LocalDateTime getMovementDate() {
+        return movementDate;
+    }
+
+    public void setMovementDate(LocalDateTime movementDate) {
+        this.movementDate = movementDate;
+    }
+
+    public String getColumnName() {
+        return columnName;
+    }
+
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
     }
 }

@@ -40,16 +40,18 @@ public class TaskService {
         this.taskHistoryRepository = taskHistoryRepository;
     }
 
-    //Creez un nou task intr-o anumita coloana (admin, team_leader, team_member)
-    public Task createTask(TaskRequestDTO taskRequestDTO) throws MessagingException, DocumentException {//
+    public boolean hasUserRole(User user, RoleType roleType) {
+        return user.getRoleList().stream().anyMatch(role -> role.getRoleType() == roleType);
+    }
+
+    public Task createTask(TaskRequestDTO taskRequestDTO) throws MessagingException, DocumentException {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         User assignee;
-        if (foundUser.getRoleList().contains(RoleType.TEAM_LEADER) || foundUser.getRoleList().contains(RoleType.ROLE_ADMIN)) {
-
+        if ((hasUserRole(foundUser, RoleType.TEAM_LEADER)) || ((hasUserRole(foundUser, RoleType.ROLE_ADMIN)))) {
             assignee = userRepository.findById(taskRequestDTO.getAssigneeId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "The responsible user was not found."));
-        } else if (foundUser.getRoleList().contains(RoleType.TEAM_MEMBER)) {
+        } else if (hasUserRole(foundUser, RoleType.TEAM_MEMBER)) {
             assignee = foundUser;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -62,16 +64,16 @@ public class TaskService {
         newTask.setDescription(taskRequestDTO.getDescription());
         newTask.setDeadline(taskRequestDTO.getDeadline());
         newTask.setCreatedDate(LocalDateTime.now());
-        newTask.setAssigneeUser(String.valueOf(assignee));//userul logat sau cel din db
+        // newTask.setCheckedDate(LocalDateTime.now()); //
+        newTask.setAssigneeUser(assignee.getUsername());//userul logat sau cel din db //String.valueOf(assignee)
         newTask.setCol(foundColumn);
 
-        List<Step> steps = new ArrayList<>(); //taskRequestDTO.getSteps();
+        List<Step> steps = new ArrayList<>();
         for (Step stepText : taskRequestDTO.getSteps()) {
             Step step = new Step();
-            step.setText(stepText.getText()); //*stepText
+            step.setText(stepText.getText());
             step.setChecked(false);
             step.setTask(newTask);
-            //newTask.getStepList().add(step);
             steps.add(step);
         }
         newTask.setStepList(steps);
@@ -79,22 +81,16 @@ public class TaskService {
         //Trimit notificare prin mail catre user-ul asignat
         //mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
 
-
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setMovementDate(newTask.getCreatedDate());
-        taskHistory.setColumnName(foundColumn.getTitle());// getname
+        taskHistory.setColumnName(foundColumn.getTitle());
+        taskHistory.setTask(newTask);
         newTask.getTaskHistoryList().add(taskHistory);
 
         return taskRepository.save(newTask);
     }
 
-    public TaskResponseDTO assignUserToTask(Long userId, Long taskId) { ////////*
-    //Cautam task-ul dupa id, daca nu il gasim aruncam exceptie
-    //Cautam user-ul dupa id, daca nu il gasim aruncam exceptie
-    //Ii setam task-ului user-ul gasit in db
-    //Trimit notificare prin mail catre user-ul asignat
-    //Salvam task-ul
-
+    public TaskResponseDTO assignUserToTask(Long userId, Long taskId) {
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         foundTask.setAssigneeUser(user.getUsername());
@@ -106,7 +102,6 @@ public class TaskService {
     private TaskResponseDTO convertToDTO(Task task) {
         User assignee = new User();
         assignee.setUsername(task.getAssigneeUser());
-
         TaskResponseDTO taskResponseDTO = new TaskResponseDTO();
         taskResponseDTO.setId(task.getId());
         taskResponseDTO.setTitle(task.getTitle());
@@ -120,45 +115,28 @@ public class TaskService {
         return taskResponseDTO;
     }
 
-    //Vad toate task-urile la care un user asignat (admin, team_leader, team_member)
-    public List<TaskResponseDTO> getTasksByUserId(Long userId) {///*
+    public List<TaskResponseDTO> getTasksByUserId(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         List<Task> tasks = taskRepository.findByAssigneeUser(user.getUsername());
         return tasks.stream()
-                .map(task -> convertToDTO(task)) //this::convertToDTO
+                .map(task -> convertToDTO(task))
                 .collect(Collectors.toList());
     }
 
-    //Vad detaliile unui anumit task (admin, team_leader, team_member)
-    public TaskResponseDTO getTaskDetails(Long taskId) {///*
+    public TaskResponseDTO getTaskDetails(Long taskId) {
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
         return convertToDTO(foundTask);
     }
 
-    //Mut task-ul din coloana curenta in alta coloana (admin, team_leader, team_member)
-        //Team leader-ul va putea muta orice task
-        //Team member-ul va putea muta doar task-urile la care e asignat
-    //pasi:
-    //Cautam task-ul dupa id in db, daca nu exista, aruncam exceptie
-    //Cautam coloana dupa id in db, daca nu exista, aruncam exceptie
-    //Adaug task-ul gasit in lista de task-uri a coloanei gasite (cea in care vrem sa mutam)
-    //Stergem task-ul din lista de task-uri a coloanei curente in care se afla
-    //Salvez in DB coloana curenta
-    //Salvez in DB coloana in care mut
-
-    //ALTERNATIVA:
-    //Ii setez task-ului noua coloana
-    //Creez un TaskHistory
-        //Ii setez movementDate la data actuala (now)
-        //Ii setez numele coloanei la numele coloanei gasite din DB
-    //Salvez task-ul (de vazut daca trebuie cascade pe task, spre coloana)
-    public List<TaskResponseDTO> moveTask(Long taskId, Long columnId){
+    public List<TaskResponseDTO> moveTask(Long taskId, Long columnId) {
         Task foundTask = taskRepository.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task was not found"));
-        Col newColumn  = colRepository.findById(columnId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Column not found"));
+        Col newColumn = colRepository.findById(columnId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Column not found"));
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (!foundUser.getRoleList().contains(RoleType.ROLE_ADMIN) && !foundUser.getRoleList().contains(RoleType.TEAM_LEADER) && !foundTask.getAssigneeUser().equals(foundUser.getUsername())) {
+        if (!foundUser.getRoleList().contains(RoleType.ROLE_ADMIN) &&
+            !foundUser.getRoleList().contains(RoleType.TEAM_LEADER) &&
+            !foundTask.getAssigneeUser().equals(foundUser.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You do not have permission to move this task");
         }
 
@@ -169,6 +147,9 @@ public class TaskService {
         taskHistory.setMovementDate(LocalDateTime.now());
         taskHistory.setColumnName(newColumn.getTitle());
 
+        if (foundTask.getTaskHistoryList() == null) {
+            foundTask.setTaskHistoryList(new ArrayList<>());
+        }
         foundTask.getTaskHistoryList().add(taskHistory);
 
         taskRepository.save(foundTask);
@@ -180,6 +161,5 @@ public class TaskService {
                 .map(taskItem -> convertToDTO(taskItem))
                 .collect(Collectors.toList());
     }
-
 
 }

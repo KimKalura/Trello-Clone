@@ -22,7 +22,7 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @PostMapping("/create")//
+    @PostMapping("/create")
     public Task createTask(@RequestBody TaskRequestDTO taskRequestDTO, @RequestParam(required = false) Long assigneeId) throws MessagingException, DocumentException {
         if (assigneeId != null) {
             taskRequestDTO.setAssigneeId(assigneeId);
@@ -30,9 +30,9 @@ public class TaskController {
         return taskService.createTask(taskRequestDTO);
     }
 
-    @PostMapping("/assign?/{userId}/{taskId}")
-    public TaskResponseDTO assignUserToTask(@RequestParam Long userId, @RequestParam Long taskId) {
-        return taskService.assignUserToTask(userId, taskId);
+    @GetMapping("/assign")
+    public TaskResponseDTO assignUserToTask(@RequestParam("assignee") Long assigneeId, @RequestParam("task") Long taskId) {
+        return taskService.assignUserToTask(assigneeId, taskId);
     }
 
     @GetMapping("/mytasks/{userId}")
@@ -46,7 +46,7 @@ public class TaskController {
     }
 
     @PutMapping("/move/{taskId}/{columnId}")
-    public List<TaskResponseDTO> moveTask(Long taskId, Long columnId) {
+    public List<TaskResponseDTO> moveTask(@PathVariable Long taskId, @PathVariable Long columnId) {
         return taskService.moveTask(taskId, columnId);
     }
 

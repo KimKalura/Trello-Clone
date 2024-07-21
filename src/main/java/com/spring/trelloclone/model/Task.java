@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 @Entity
 public class Task {
@@ -31,6 +33,9 @@ public class Task {
     private LocalDateTime createdDate;
 
     @Column
+    private LocalDateTime checkedDate;
+
+    @Column
     private LocalDateTime deadline;
 
     @ManyToOne
@@ -46,7 +51,8 @@ public class Task {
     @JsonManagedReference(value = "task-taskHistory")
     private List<TaskHistory> taskHistoryList;
 
-    public Task(){}
+    public Task() {
+    }
 
     public Task(Long id, String title, String description, String assigneeUser, LocalDateTime createdDate, LocalDateTime deadline, Col col, List<Step> stepList, List<TaskHistory> taskHistoryList) {
         this.id = id;
@@ -58,6 +64,14 @@ public class Task {
         this.col = col;
         this.stepList = stepList;
         this.taskHistoryList = taskHistoryList;
+    }
+
+    public LocalDateTime getCheckedDate() {
+        return checkedDate;
+    }
+
+    public void setCheckedDate(LocalDateTime checkedDate) {
+        this.checkedDate = checkedDate;
     }
 
     public Long getId() {
@@ -125,6 +139,9 @@ public class Task {
     }
 
     public List<TaskHistory> getTaskHistoryList() {
+        if (taskHistoryList == null) {
+            taskHistoryList = new ArrayList<>();
+        }
         return taskHistoryList;
     }
 
