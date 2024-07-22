@@ -38,17 +38,17 @@ public class BoardService {
         this.userRepository = userRepository;
     }
 
-    //Creez un nou board pentru o echipa (admin, team_leader)
-    public Board addBoard(Board board) {
-        Board foundBoard = boardRepository.findBoardByTitle(board.getTitle());//findById(board.getId());//
-        if (foundBoard == null) {
-            return boardRepository.save(board);
-        } else {
-            throw new ResponseStatusException(HttpStatus.CREATED, "board already exists");
+
+    public Board addBoard(Board board, Long teamId) {
+        Board foundBoard = boardRepository.findBoardByTitle(board.getTitle());
+        if (foundBoard != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Board already exists");
         }
+        Team team = teamRepository.findById(teamId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
+        board.setTeam(team);
+        return boardRepository.save(board);
     }
 
-    //>>Vad toate board-urile din care fac parte(adica board-urile din echipele in care sunt membru) (admin, team_leader, team_member)
     public List<Board> getAllBoard() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User foundUser = userRepository.findUserByUsername(userDetails.getUsername()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user not found"));
@@ -60,8 +60,7 @@ public class BoardService {
         return allBoards;
     }
 
-
-    //>>Generez un raport in format CSV pentru un anumit board (admin, team_leader)
+    //Generez un raport in format CSV pentru un anumit board (admin, team_leader):
     //Mergem prin fiecare coloana din board
     //Numaram cate task-uri sunt in fiecare coloana din board
     //Am putea sa generam un map in care cheia e numele coloanei si valoarea e numarul de task-uri din coloana
@@ -71,12 +70,9 @@ public class BoardService {
 
     }*/
 
-
-    //Sterg un anumit board (admin, team_leader)
     public ResponseEntity<String> deleteBoard(Long boardId){ //f
         Board foundBoard = boardRepository.findById(boardId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Board was not found"));
         boardRepository.delete(foundBoard);
-
         String responseMessage = "Board with id " + boardId + " has been successfully deleted.";
         return ResponseEntity.ok(responseMessage);
     }

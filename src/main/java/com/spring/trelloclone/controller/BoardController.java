@@ -31,8 +31,8 @@ public class BoardController {
 
 
     @PostMapping("/create")
-    public Board createCategory(@RequestBody Board board) {
-        return boardService.addBoard(board);
+    public Board createCategory(@RequestBody Board board, @RequestParam Long teamId) {
+        return boardService.addBoard(board, teamId);
     }
 
     @GetMapping("/myBoards")
@@ -44,6 +44,5 @@ public class BoardController {
     public ResponseEntity<String> deleteBoard(@PathVariable Long boardId){
         return boardService.deleteBoard(boardId);
     }
-
 
 }
