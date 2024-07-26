@@ -7,16 +7,6 @@ import java.util.List;
 
 public class TaskResponseDTO {
 
-//Id
-//Title
-//Description
-//Asignee
-//CreatedDate
-//Deadline
-//Checklist
-//Coloana in care este task-ul
-//Board-ul in care este task-ul
-
     private Long id;
     private String title;
     private String description;
