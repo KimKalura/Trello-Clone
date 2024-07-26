@@ -22,23 +22,17 @@ public class StepService {
         this.stepRepository = stepRepository;
     }
 
-    //Vreau sa bifez un pas dintr-un task:
-        //Cautam pasul dupa id in db, daca nu exista, aruncam exceptie
-        //Ii setam checked pe true
-        //Ii punem data bifarii la data actuala (now)
-        //Salvam pasul din DB
+
     public Step checkStep(Long stepId) {
         Step foundStep = stepRepository.findById(stepId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Step was not found"));
+        if(foundStep.isChecked()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Step is already checked");
+        }
         foundStep.setChecked(true);
         foundStep.getTask().setCheckedDate(LocalDateTime.now());
         return stepRepository.save(foundStep);
     }
 
-    //Vreau sa debifez un pas dintr-un task:
-        //Cautam pasul dupa id in db, daca nu exista, aruncam exceptie
-        //Ii setam checked pe false
-        //Ii punem data bifarii la null
-        //Salvam pasul din DB
     public Step uncheckStep(Long stepId) {
         Step foundStep = stepRepository.findById(stepId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Step was not found"));
         foundStep.setChecked(false);

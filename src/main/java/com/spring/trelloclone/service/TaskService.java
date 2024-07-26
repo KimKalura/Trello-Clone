@@ -79,7 +79,7 @@ public class TaskService {
         newTask.setStepList(steps);
 
         //Trimit notificare prin mail catre user-ul asignat
-        //mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
+        mailService.sendNotificationToAssignee(assignee.getEmail(), newTask);
 
         TaskHistory taskHistory = new TaskHistory();
         taskHistory.setMovementDate(newTask.getCreatedDate());
@@ -147,9 +147,9 @@ public class TaskService {
         taskHistory.setMovementDate(LocalDateTime.now());
         taskHistory.setColumnName(newColumn.getTitle());
 
-        if (foundTask.getTaskHistoryList() == null) {
+        /*if (foundTask.getTaskHistoryList() == null) {
             foundTask.setTaskHistoryList(new ArrayList<>());
-        }
+        }*/
         foundTask.getTaskHistoryList().add(taskHistory);
 
         taskRepository.save(foundTask);
